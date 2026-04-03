@@ -75,6 +75,5 @@ def ask_ai():
         return jsonify({"answer": "មានបញ្ហាបច្ចេកទេសបន្តិចបន្តួច សូមព្យាយាមម្តងទៀត។"})
 
 if __name__ == '__main__':
-    # ប្រើប្រាស់ Port ដែល Render ផ្តល់ឱ្យ (ប្រសិនបើគ្មាន ប្រើ 10000 ជា default)
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    # ប្តូរពី os.environ.get("PORT", 10000) មកដាក់លេខ 10000 ចំៗតែម្តងដើម្បីតេស្ត
+    app.run(host='0.0.0.0', port=10000)
