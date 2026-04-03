@@ -1,0 +1,6 @@
+flask
+flask-cors
+pinecone-client
+sentence-transformers
+google-genai
+gunicorn
