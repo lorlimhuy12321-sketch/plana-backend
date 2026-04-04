@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app, origins=["https://beautiful-cannoli-5076d2.netlify.app"])
 
 # --- API KEYS (READ FROM SYSTEM) ---
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
