@@ -9,49 +9,65 @@ from google.genai import types
 app = Flask(__name__)
 CORS(app) 
 
-# --- API KEYS ---
 # --- API KEYS (READ FROM SYSTEM) ---
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-pc = Pinecone(api_key=PINECONE_API_KEY)                   
+# Initialize Pinecone
+pc = Pinecone(api_key=PINECONE_API_KEY)                    
 index = pc.Index("plana-ai-db")
+
+# Initialize Gemini
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
 
 @app.route('/ask', methods=['POST'])
 def ask_ai():
-    data = request.json
-    student_question = data.get('question', '')
-    base64_image = data.get('image')
+    try:
+        data = request.json
+        student_question = data.get('question', '')
+        base64_image = data.get('image')
 
-    # --- 1. SEARCH PINECONE FOR REFERENCE ---
+        # --- 1. SEARCH PINECONE FOR REFERENCE ---
+        best_match = "មិនមានឯកសារយោងទេ" # ទុកជាជម្រើសបម្រុង
+        
+        # បើសិស្សផ្ញើតែរូបភាព អត់មានវាយអក្សរ យើងត្រូវមានពាក្យសម្រាប់ Search
+        search_text = student_question if student_question.strip() else "លំហាត់គណិតវិទ្យាថ្នាក់ទី១២"
+
         try:
-            # (Assuming you have a function that turns the question into a vector)
-            # query_vector = get_embedding(student_question) 
+            # ជំហាន 1a: បំប្លែងសំណួរទៅជាវ៉ិចទ័រ (Vector Embedding)
+            embedding_response = ai_client.models.embed_content(
+                model='text-embedding-004', # នេះគឺជា Model សម្រាប់បំប្លែងអក្សរទៅជាលេខ
+                contents=search_text
+            )
+            query_vector = embedding_response.embeddings[0].values
             
-            # Search Pinecone for the closest match
-            # search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
+            # ជំហាន 1b: ស្វែងរកក្នុង Pinecone យកអាដែលស្រដៀងជាងគេ ១
+            search_results = index.query(
+                vector=query_vector, 
+                top_k=1, 
+                include_metadata=True
+            )
             
-            # Define the variable!
-            # best_match = search_results['matches'][0]['metadata']['text']
-            
-            # FOR NOW: Let's put a dummy string just to test if your code runs without crashing
-            best_match = "សន្មតថាឯកសារយោងទទេសិន" 
-        except Exception as e:
-            best_match = "មិនមានឯកសារយោងទេ"
-
+            # ជំហាន 1c: ទាញយកអត្ថបទលំហាត់គំរូចេញមក
+            if search_results['matches']:
+                # ចំណាំ៖ 'text' នេះត្រូវតែដូចគ្នានឹងឈ្មោះ Field ដែលប្អូនបាន Upload ចូល Pinecone
+                best_match = search_results['matches'][0]['metadata']['text']
+                
+        except Exception as pinecone_error:
+            # ប្រសិនបើ Pinecone មានបញ្ហា វានឹង Print ប្រាប់ក្នុង Render តែ App នៅតែដើរធម្មតា
+            print(f"Pinecone Error: {pinecone_error}") 
 
         # --- 2. BUILD THE STRICT PROMPT ---
         prompt = f"""
         អ្នកគឺជាគ្រូបង្រៀនគណិតវិទ្យាដ៏ពូកែម្នាក់នៅកម្ពុជា តំណាងឱ្យស្ថាប័ន PlanA Ai។
         
-        TASK: Solve the math problem asked by the user.
+        TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
         
         CRITICAL RULES FOR METHODOLOGY & FORMAT:
-        1. STRICT REFERENCE MATCHING: Solve the problem using the exact mathematical logic shown in the REFERENCE DATA.
+        1. STRICT REFERENCE MATCHING: You MUST solve the problem using the EXACT mathematical logic and methodology shown in the REFERENCE DATA.
         2. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", or give any conversational explanations.
         3. START DIRECTLY: Always start your response with exactly "**ដំណោះស្រាយ**".
-        4. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ).
+        4. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ, ដោយ, ព្រោះ).
         5. FINAL CONCLUSION: Always end your solution with exactly "**ដូចនេះ** [ចម្លើយចុងក្រោយ] ។"
         6. MATH FORMATTING: Use LaTeX for ALL math formulas.
         
