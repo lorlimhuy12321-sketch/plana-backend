@@ -110,7 +110,14 @@ def ask_ai():
             clean_base64 = base64_image.split(",")[1]
             contents.append(types.Part.from_bytes(data=base64.b64decode(clean_base64), mime_type='image/jpeg'))
 
-        response = ai_client.models.generate_content(model='gemini-2.5-flash', contents=contents)
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash', # The best balance of cost and math accuracy
+            contents=contents,
+            config=types.GenerateContentConfig(
+                max_output_tokens=600,  # Caps the response length to save money
+                temperature=0.1         # Super low temperature makes it strictly follow your Pinecone math steps without hallucinating
+            )
+        )
         return jsonify({"answer": response.text})
 
     except Exception as e:
