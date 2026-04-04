@@ -34,9 +34,14 @@ def ask_ai():
         search_text = student_question if student_question.strip() else "លំហាត់គណិតវិទ្យាថ្នាក់ទី១២"
 
         try:
+            # 🔴 ចំណុចដែលបានកែ៖ ដូរឈ្មោះ Model ទៅជា 'gemini-embedding-001'
             embedding_response = ai_client.models.embed_content(
-                model='text-embedding-004', 
-                contents=search_text
+                model='gemini-embedding-001', 
+                contents=search_text,
+                # 💡 បញ្ជាក់៖ ប្រសិនបើអ្នកមិនទាន់បានលុប Database ចាស់ (ដែលប្រើទំហំ 384) ទេ 
+                # អ្នកត្រូវតែថែមបន្ទាត់ config ខាងក្រោមនេះ។ 
+                # (បើអ្នកបានបង្កើត Database ថ្មីទំហំ 3072 ដូចដែលខ្ញុំបានណែនាំពីសារមុន សូមលុបបន្ទាត់ config នេះចោល)
+                config={'output_dimensionality': 384} 
             )
             query_vector = embedding_response.embeddings[0].values
             
@@ -50,7 +55,7 @@ def ask_ai():
                 best_match = search_results['matches'][0]['metadata']['text']
                 
         except Exception as pinecone_error:
-            print(f"Pinecone Error: {pinecone_error}") 
+            print(f"Pinecone Error: {pinecone_error}")
 
         # --- 2. BUILD THE STRICT PROMPT (BASED ON LANGUAGE) ---
         if language == 'en':
