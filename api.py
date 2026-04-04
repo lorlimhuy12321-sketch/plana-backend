@@ -24,27 +24,38 @@ def ask_ai():
     student_question = data.get('question', '')
     base64_image = data.get('image')
 
-    try:
-        # ដោយសារយើងលុប Model ធំចេញ យើងនឹងប្រើសំណួរផ្ទាល់ទៅ Gemini តែម្តង
-        # ប៉ុន្តែយើងអាចដាក់ Context ខ្លះៗពី Database បើចង់
-        
+    # --- 1. SEARCH PINECONE FOR REFERENCE ---
+        try:
+            # (Assuming you have a function that turns the question into a vector)
+            # query_vector = get_embedding(student_question) 
+            
+            # Search Pinecone for the closest match
+            # search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
+            
+            # Define the variable!
+            # best_match = search_results['matches'][0]['metadata']['text']
+            
+            # FOR NOW: Let's put a dummy string just to test if your code runs without crashing
+            best_match = "សន្មតថាឯកសារយោងទទេសិន" 
+        except Exception as e:
+            best_match = "មិនមានឯកសារយោងទេ"
+
+
+        # --- 2. BUILD THE STRICT PROMPT ---
         prompt = f"""
         អ្នកគឺជាគ្រូបង្រៀនគណិតវិទ្យាដ៏ពូកែម្នាក់នៅកម្ពុជា តំណាងឱ្យស្ថាប័ន PlanA Ai។
         
-        TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
+        TASK: Solve the math problem asked by the user.
         
         CRITICAL RULES FOR METHODOLOGY & FORMAT:
-        1. STRICT REFERENCE MATCHING (MOST IMPORTANT): You MUST solve the problem using the EXACT mathematical logic and methodology shown in the REFERENCE DATA. 
-           - If the reference uses limits (\\lim) to prove asymptotes, YOU MUST write out the full limit equations. 
-           - If the reference uses a specific substitution method, YOU MUST use it. 
-           - DO NOT use AI shortcuts. Mirror the rigorous methodology of the Cambodian high school curriculum provided in the reference.
-        2. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", "ជំហានទី១", or give any conversational explanations.
+        1. STRICT REFERENCE MATCHING: Solve the problem using the exact mathematical logic shown in the REFERENCE DATA.
+        2. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", or give any conversational explanations.
         3. START DIRECTLY: Always start your response with exactly "**ដំណោះស្រាយ**".
-        4. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words such as: "គេមាន", "គេបាន", "តាង", "នាំឱ្យ", "ព្រោះ", "ដោយ". 
+        4. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ).
         5. FINAL CONCLUSION: Always end your solution with exactly "**ដូចនេះ** [ចម្លើយចុងក្រោយ] ។"
-        6. MATH FORMATTING: Use LaTeX for ALL math formulas, variables, and numbers.
+        6. MATH FORMATTING: Use LaTeX for ALL math formulas.
         
-        REFERENCE DATA (from database):
+        REFERENCE DATA (from Pinecone database):
         {best_match}
         
         USER QUESTION: 
