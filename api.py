@@ -10,8 +10,9 @@ app = Flask(__name__)
 CORS(app) 
 
 # --- API KEYS ---
-PINECONE_API_KEY = "pcsk_5q84SC_N75kyYFFVJFtYxFNNTDuFDiFC6cWTnzzPyCHx1pUtMg3Zb3zoPFvGwPKPerMAyr"
-GEMINI_API_KEY = "AIzaSyAOhOiFQ8AhqmF7FUvgLSkpprrQJ4msVjE"
+# --- API KEYS (READ FROM SYSTEM) ---
+PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)                   
 index = pc.Index("plana-ai-db")
