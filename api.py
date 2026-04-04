@@ -26,62 +26,79 @@ def ask_ai():
         data = request.json
         student_question = data.get('question', '')
         base64_image = data.get('image')
+        language = data.get('language', 'km') # ទាញយកភាសាដែលសិស្សជ្រើសរើស (Default គឺខ្មែរ)
 
         # --- 1. SEARCH PINECONE FOR REFERENCE ---
-        best_match = "មិនមានឯកសារយោងទេ" # ទុកជាជម្រើសបម្រុង
+        best_match = "មិនមានឯកសារយោងទេ" 
         
-        # បើសិស្សផ្ញើតែរូបភាព អត់មានវាយអក្សរ យើងត្រូវមានពាក្យសម្រាប់ Search
         search_text = student_question if student_question.strip() else "លំហាត់គណិតវិទ្យាថ្នាក់ទី១២"
 
         try:
-            # ជំហាន 1a: បំប្លែងសំណួរទៅជាវ៉ិចទ័រ (Vector Embedding)
             embedding_response = ai_client.models.embed_content(
-                model='text-embedding-004', # នេះគឺជា Model សម្រាប់បំប្លែងអក្សរទៅជាលេខ
+                model='text-embedding-004', 
                 contents=search_text
             )
             query_vector = embedding_response.embeddings[0].values
             
-            # ជំហាន 1b: ស្វែងរកក្នុង Pinecone យកអាដែលស្រដៀងជាងគេ ១
             search_results = index.query(
                 vector=query_vector, 
                 top_k=1, 
                 include_metadata=True
             )
             
-            # ជំហាន 1c: ទាញយកអត្ថបទលំហាត់គំរូចេញមក
             if search_results['matches']:
-                # ចំណាំ៖ 'text' នេះត្រូវតែដូចគ្នានឹងឈ្មោះ Field ដែលប្អូនបាន Upload ចូល Pinecone
                 best_match = search_results['matches'][0]['metadata']['text']
                 
         except Exception as pinecone_error:
-            # ប្រសិនបើ Pinecone មានបញ្ហា វានឹង Print ប្រាប់ក្នុង Render តែ App នៅតែដើរធម្មតា
             print(f"Pinecone Error: {pinecone_error}") 
 
-        # --- 2. BUILD THE STRICT PROMPT ---
-        # --- 2. BUILD THE STRICT PROMPT ---
-        prompt = f"""
-        អ្នកគឺជាគ្រូបង្រៀនគណិតវិទ្យាដ៏ពូកែម្នាក់នៅកម្ពុជា តំណាងឱ្យស្ថាប័ន PlanA Ai។
-        
-        TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
-        
-        CRITICAL RULES FOR METHODOLOGY & FORMAT:
-        1. RELEVANCE CHECK (CRITICAL): First, compare the USER QUESTION to the REFERENCE DATA. 
-           - If the REFERENCE DATA is about a completely different math topic (e.g., the user asks about 'បរមាធៀប' but the reference is about 'អាស៊ីមតូត'), you MUST IGNORE the Reference Data entirely.
-           - Only apply the Reference Data if it matches the topic of the User Question.
-        2. STRICT REFERENCE MATCHING: If the Reference Data is relevant, you MUST solve the problem using the EXACT mathematical logic shown in it.
-        3. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", "ជំហានទី១", or give any conversational explanations.
-        4. START DIRECTLY: Always start your response with exactly "<b>ដំណោះស្រាយ</b>". Do NOT use asterisks (**).
-        5. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ, ដោយ, ព្រោះ).
-        6. FINAL CONCLUSION: Always end your solution with exactly "<b>ដូចនេះ</b> [ចម្លើយចុងក្រោយ] ។" Do NOT use asterisks (**).
-        7. MATH FORMATTING: Use LaTeX for ALL math formulas.
-        8. RIGOROUS METHODOLOGY: Solve using standard Cambodian high school methodology. Show step-by-step mathematical proofs.
-        
-        REFERENCE DATA (from Pinecone database):
-        {best_match}
-        
-        USER QUESTION: 
-        {student_question}
-        """
+        # --- 2. BUILD THE STRICT PROMPT (BASED ON LANGUAGE) ---
+        if language == 'en':
+            prompt = f"""
+            You are an expert math tutor in Cambodia representing PlanA Ai.
+            
+            TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
+            
+            CRITICAL RULES FOR METHODOLOGY & FORMAT:
+            1. RELEVANCE CHECK: If the REFERENCE DATA is irrelevant to the question, ignore it.
+            2. STRICT REFERENCE MATCHING: If relevant, you MUST solve the problem using the EXACT mathematical logic and methodology shown in the REFERENCE DATA. 
+               -> Translate the explanation into English, but keep the step-by-step mathematical derivation completely identical to the Cambodian standard shown in the reference.
+            3. NO CONVERSATIONAL TEXT: Do not say "Hello", "Let's solve this", etc.
+            4. START DIRECTLY: Always start your response with exactly "<b>Solution</b>". Do NOT use asterisks (**).
+            5. SHORT BRIDGING WORDS: Use only standard English mathematical bridging words (e.g., We have, Let, Therefore, Since, Because).
+            6. FINAL CONCLUSION: Always end your solution with exactly "<b>Therefore,</b> [final answer]." Do NOT use asterisks (**).
+            7. MATH FORMATTING: Use LaTeX for ALL math formulas.
+            
+            REFERENCE DATA (from Pinecone database in Khmer):
+            {best_match}
+            
+            USER QUESTION: 
+            {student_question}
+            """
+        else:
+            prompt = f"""
+            អ្នកគឺជាគ្រូបង្រៀនគណិតវិទ្យាដ៏ពូកែម្នាក់នៅកម្ពុជា តំណាងឱ្យស្ថាប័ន PlanA Ai។
+            
+            TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
+            
+            CRITICAL RULES FOR METHODOLOGY & FORMAT:
+            1. RELEVANCE CHECK (CRITICAL): First, compare the USER QUESTION to the REFERENCE DATA. 
+               - If the REFERENCE DATA is about a completely different math topic, you MUST IGNORE the Reference Data entirely.
+               - Only apply the Reference Data if it matches the topic of the User Question.
+            2. STRICT REFERENCE MATCHING: If the Reference Data is relevant, you MUST solve the problem using the EXACT mathematical logic shown in it.
+            3. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", "ជំហានទី១", or give any conversational explanations.
+            4. START DIRECTLY: Always start your response with exactly "<b>ដំណោះស្រាយ</b>". Do NOT use asterisks (**).
+            5. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ, ដោយ, ព្រោះ).
+            6. FINAL CONCLUSION: Always end your solution with exactly "<b>ដូចនេះ</b> [ចម្លើយចុងក្រោយ] ។" Do NOT use asterisks (**).
+            7. MATH FORMATTING: Use LaTeX for ALL math formulas.
+            8. RIGOROUS METHODOLOGY: Solve using standard Cambodian high school methodology.
+            
+            REFERENCE DATA (from Pinecone database):
+            {best_match}
+            
+            USER QUESTION: 
+            {student_question}
+            """
 
         contents = [prompt]
         if base64_image:
