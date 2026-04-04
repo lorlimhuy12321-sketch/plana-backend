@@ -1,7 +1,5 @@
 flask
 flask-cors
 pinecone
-sentence-transformers
 google-genai
-pillow
 gunicorn
