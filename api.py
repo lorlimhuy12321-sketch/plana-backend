@@ -33,15 +33,19 @@ def ask_ai():
         
         TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
         
-        STRICT RULES FOR OUTPUT FORMAT:
-        1. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", "ជំហានទី១", or give any conversational explanations.
-        2. START DIRECTLY: Always start your response with exactly "**ដំណោះស្រាយ**".
-        3. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words such as: "គេមាន", "គេបាន", "តាង", "នាំឱ្យ", "ជំនួសលុះត្រាតែ", "ដោយ". 
-        4. FINAL CONCLUSION: Always end your solution with exactly "**ដូចនេះ** [ចម្លើយចុងក្រោយ] ។"
-        5. MATH FORMATTING: Use LaTeX for ALL math formulas, variables, and numbers.
-        6. TONE: Extremely concise, professional, and exactly matching the style of a Cambodian high school math textbook answer key.
-        7. REFERENCE DATA: If the 'Reference Data' below contains a similar problem, strictly follow its methodology and format.
+        CRITICAL RULES FOR METHODOLOGY & FORMAT:
+        1. STRICT REFERENCE MATCHING (MOST IMPORTANT): You MUST solve the problem using the EXACT mathematical logic and methodology shown in the REFERENCE DATA. 
+           - If the reference uses limits (\\lim) to prove asymptotes, YOU MUST write out the full limit equations. 
+           - If the reference uses a specific substitution method, YOU MUST use it. 
+           - DO NOT use AI shortcuts. Mirror the rigorous methodology of the Cambodian high school curriculum provided in the reference.
+        2. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", "ជំហានទី១", or give any conversational explanations.
+        3. START DIRECTLY: Always start your response with exactly "**ដំណោះស្រាយ**".
+        4. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words such as: "គេមាន", "គេបាន", "តាង", "នាំឱ្យ", "ព្រោះ", "ដោយ". 
+        5. FINAL CONCLUSION: Always end your solution with exactly "**ដូចនេះ** [ចម្លើយចុងក្រោយ] ។"
+        6. MATH FORMATTING: Use LaTeX for ALL math formulas, variables, and numbers.
         
+        REFERENCE DATA (from database):
+        {best_match}
         
         USER QUESTION: 
         {student_question}
