@@ -64,12 +64,12 @@ def ask_ai():
         TASK: Solve the math problem asked by the user. If they attached an image, read the math from the image.
         
         CRITICAL RULES FOR METHODOLOGY & FORMAT:
-        1. STRICT REFERENCE MATCHING: You MUST solve the problem using the EXACT mathematical logic and methodology shown in the REFERENCE DATA.
-        2. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", or give any conversational explanations.
-        3. START DIRECTLY: Always start your response with exactly "**ដំណោះស្រាយ**".
-        4. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ, ដោយ, ព្រោះ).
-        5. FINAL CONCLUSION: Always end your solution with exactly "**ដូចនេះ** [ចម្លើយចុងក្រោយ] ។"
-        6. MATH FORMATTING: Use LaTeX for ALL math formulas.
+        1. NO CONVERSATIONAL TEXT: Do not say "សួស្តី", "ខ្ញុំសូមជួយ", "ជំហានទី១", or give any conversational explanations.
+        2. START DIRECTLY: Always start your response with exactly "<b>ដំណោះស្រាយ</b>". Do NOT use asterisks (**).
+        3. SHORT BRIDGING WORDS: Use only standard Khmer mathematical bridging words (គេមាន, គេបាន, តាង, នាំឱ្យ, ដោយ, ព្រោះ).
+        4. FINAL CONCLUSION: Always end your solution with exactly "<b>ដូចនេះ</b> [ចម្លើយចុងក្រោយ] ។" Do NOT use asterisks (**).
+        5. MATH FORMATTING: Use LaTeX for ALL math formulas.
+        6. RIGOROUS METHODOLOGY: Solve the problem using the exact mathematical logic shown in the REFERENCE DATA or standard Cambodian high school methodology (like using \\lim for asymptotes). Do NOT use shortcuts.
         
         REFERENCE DATA (from Pinecone database):
         {best_match}
