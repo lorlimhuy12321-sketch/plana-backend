@@ -41,7 +41,7 @@ def ask_ai():
             clean_base64 = base64_image.split(",")[1]
             contents.append(types.Part.from_bytes(data=base64.b64decode(clean_base64), mime_type='image/jpeg'))
 
-        response = ai_client.models.generate_content(model='gemini-1.5-pro', contents=contents)
+        response = ai_client.models.generate_content(model='gemini-2.5-flash', contents=contents)
         return jsonify({"answer": response.text})
 
     except Exception as e:
