@@ -42,8 +42,6 @@ def ask_ai():
         6. TONE: Extremely concise, professional, and exactly matching the style of a Cambodian high school math textbook answer key.
         7. REFERENCE DATA: If the 'Reference Data' below contains a similar problem, strictly follow its methodology and format.
         
-        REFERENCE DATA (from database):
-        {best_match}
         
         USER QUESTION: 
         {student_question}
